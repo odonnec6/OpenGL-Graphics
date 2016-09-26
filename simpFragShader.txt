@@ -1,0 +1,43 @@
+#version 330
+
+in vec2 frag_tex_coord;
+in vec3 eye_pos, eye_norm;
+in mat4 view_mat;
+
+
+vec3 light_pos_world  = vec3(-2.0, 2.0, 4.0);
+
+vec3 Ls = vec3(0.9, 0.9, 0.7);//specular
+vec3 Ld = vec3(1.0, 1.0, 1.0);//diffuse
+vec3 La = vec3(0.2, 0.2, 0.2);//ambient
+
+vec3 Ks = vec3(1.0, 1.0, 1.0);
+vec3 Kd = vec3(1.0, 0.5, 0.0);
+vec3 Ka = vec3(1.0, 1.0, 1.0);
+float specular_exponent = 100.0;
+
+out vec4 fragment_colour;
+
+void main () {
+    vec3 Ia = La * Ka;
+
+    vec3 eye_light_pos = vec3(view_mat * vec4(light_pos_world, 1.0));
+    vec3 eye_dist_to_light = eye_light_pos - eye_pos;
+    vec3 eye_dir_to_light = normalize(eye_dist_to_light);
+
+    float dot_prod = dot(eye_dir_to_light, eye_norm);
+    dot_prod = max(dot_prod, 0.0);
+
+    vec3 Id = Ld * Kd * dot_prod;
+
+    vec3 eye_reflect = reflect(-eye_dir_to_light, eye_norm);
+    vec3 eye_viewtotop = normalize(-eye_pos);
+
+    float dot_prod_specular = dot(eye_reflect, eye_viewtotop);
+    dot_prod_specular = max(dot_prod_specular, 0.0);
+    float specular_factor = pow(dot_prod_specular, specular_exponent);
+
+    vec3 Is = Ls * Ks * specular_factor;
+
+    fragment_colour = vec4(Is + Id + Ia, 1.0);
+}
